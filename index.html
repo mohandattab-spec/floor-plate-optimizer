@@ -17,16 +17,14 @@ button{border:0;border-radius:6px;padding:9px 13px;font-weight:600;cursor:pointe
 .metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:15px}.metric{background:#f7f9fb;border:1px solid var(--line);border-radius:8px;padding:13px}.metric .label{font-size:12px;color:var(--muted)}.metric .value{font-size:21px;font-weight:700;margin-top:4px}
 .ok{color:var(--green)}.warn{color:var(--orange)}.error{color:var(--red)}.badge{display:inline-block;background:var(--blue2);color:#0e568e;padding:3px 7px;border-radius:99px;font-size:12px;font-weight:600}
 .plan{border:1px solid var(--line);border-radius:8px;margin:10px 0;padding:12px}.plan h3{margin:0 0 8px;font-size:15px}.cutlist{margin:0;padding-left:18px}.cutlist li{margin:4px 0;font-size:13px}
-.notice{padding:10px 12px;background:#fff8e8;border-left:4px solid #d98b16;margin:10px 0;font-size:13px}.success{padding:10px 12px;background:#eaf8f2;border-left:4px solid var(--green);margin:10px 0;font-size:13px}
+.neststats{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:8px;margin:8px 0 10px}.neststats>div{background:#f7f9fb;border:1px solid var(--line);border-radius:6px;padding:7px;font-size:12px}.notice{padding:10px 12px;background:#fff8e8;border-left:4px solid #d98b16;margin:10px 0;font-size:13px}.success{padding:10px 12px;background:#eaf8f2;border-left:4px solid var(--green);margin:10px 0;font-size:13px}
 canvas{width:100%;max-width:100%;border:1px solid var(--line);border-radius:7px;background:white}.legend{font-size:12px;color:var(--muted);margin-top:5px}
 @media print{
  body{background:#fff}.no-print{display:none!important}.card{box-shadow:none;border:0;margin:0 0 12px;padding:8px}.card.input-card,.card.settings-card{display:none!important}
  header{padding:12px 18px}header h1{font-size:20px}main{max-width:none;margin:0;padding:0}.plan{break-inside:avoid-page}.metrics{grid-template-columns:repeat(5,1fr)}canvas{max-width:100%}
 }
-@media(max-width:900px){.settings{grid-template-columns:1fr 1fr}.metrics{grid-template-columns:1fr 1fr}}@media(max-width:600px){.settings,.metrics{grid-template-columns:1fr}.card{padding:12px}table{min-width:720px}.table-wrap{overflow:auto}}
+@media(max-width:900px){.neststats{grid-template-columns:1fr 1fr}.settings{grid-template-columns:1fr 1fr}.metrics{grid-template-columns:1fr 1fr}}@media(max-width:600px){.neststats{grid-template-columns:1fr}.settings,.metrics{grid-template-columns:1fr}.card{padding:12px}table{min-width:720px}.table-wrap{overflow:auto}}
 </style>
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#18324a">
 </head>
 <body>
 <header><h1>Floor Plate Raw Material Optimizer</h1><p>Best Material Plan — rectangular floor plates → raw-material Part# + quantity + cutting allocation</p></header>
@@ -38,15 +36,17 @@ canvas{width:100%;max-width:100%;border:1px solid var(--line);border-radius:7px;
 </section>
 <section class="card input-card">
 <h2>2. Floor Plate Requirements</h2><div class="sub">Enter the finished floor-plate dimensions and quantities. Rotation is tested automatically. You can enter up to <b>40 floor-plate rows</b>; each row may have any quantity.</div>
-<div class="table-wrap"><table id="reqTable"><thead><tr><th>Floor Plate Part#</th><th>Length</th><th>Width</th><th>Qty</th><th></th></tr></thead><tbody></tbody></table></div>
+<div class="table-wrap"><table id="reqTable"><thead><tr><th>Floor Plate Part#</th><th>Length</th><th>Width</th><th>Qty</th><th>Part Weight (lb, optional)</th><th></th></tr></thead><tbody></tbody></table></div>
 <div class="actions"><button class="secondary" onclick="addReq()">+ Add Floor Plate</button><button class="secondary" onclick="loadSample()">Load Sample</button><label class="secondary" style="display:inline-block;cursor:pointer">Upload Excel <input id="excelFile" type="file" accept=".xls,.xlsx,.csv" style="display:none" onchange="importExcel(this.files[0])"></label><span id="reqCount" class="badge" style="align-self:center">0 / 40 rows</span></div>
 </section>
 <section class="card settings-card">
 <h2>3. Optimization Settings</h2>
 <div class="settings">
-<div class="setting"><label>Cutting kerf (in)</label><input id="kerf" type="number" step="0.001" value="0.125"></div>
+<div class="setting"><label>Cutting kerf / part separation (in)</label><input id="kerf" type="number" step="0.001" value="0.091"></div>
 <div class="setting"><label>Edge trim — width (in)</label><input id="trimW" type="number" step="0.001" value="0"></div>
 <div class="setting"><label>Edge trim — length (in)</label><input id="trimL" type="number" step="0.001" value="0"></div>
+<div class="setting"><label>Material thickness (in)</label><input id="thickness" type="number" step="0.001" value="0.250"></div>
+<div class="setting"><label>Steel density (lb/in³)</label><input id="density" type="number" step="0.0001" value="0.2830"></div>
 <div class="setting"><label>Optimization priority</label><select id="priority"><option value="balanced">Balanced — waste + plate count</option><option value="waste">Minimum material waste</option><option value="count">Minimum raw-plate count</option><option value="cost">Minimum cost (if entered)</option></select></div>
 </div>
 <div class="actions no-print"><button class="primary" onclick="optimize()">OPTIMIZE — Best Material Plan</button><button class="secondary" onclick="clearResult()">Clear Result</button></div>
@@ -73,7 +73,7 @@ const sampleReq=[
 ];
 function fmt(n){return Number(n).toLocaleString(undefined,{maximumFractionDigits:3});}
 function addRM(x={part:'RM-NEW',w:120,l:230,avail:1,cost:''}){rms.push({...x});renderRM();}
-function addReq(x={part:'FP-NEW',l:100,w:50,qty:1}){if(reqs.length>=40){alert('Maximum 40 floor-plate rows are supported. Use Qty for repeated plates.');return;}reqs.push({...x});renderReq();}
+function addReq(x={part:'FP-NEW',l:100,w:50,qty:1,weight:''}){if(reqs.length>=40){alert('Maximum 40 floor-plate rows are supported. Use Qty for repeated plates.');return;}reqs.push({...x});renderReq();}
 function renderRM(){document.querySelector('#rmTable tbody').innerHTML=rms.map((x,i)=>`<tr>
 <td><input class="part" value="${x.part}" onchange="rms[${i}].part=this.value"></td>
 <td><input type="number" step="0.001" value="${x.w}" onchange="rms[${i}].w=+this.value"></td>
@@ -86,6 +86,7 @@ function renderReq(){document.querySelector('#reqCount').textContent=`${reqs.len
 <td><input type="number" step="0.001" value="${x.l}" onchange="reqs[${i}].l=+this.value"></td>
 <td><input type="number" step="0.001" value="${x.w}" onchange="reqs[${i}].w=+this.value"></td>
 <td><input type="number" min="1" value="${x.qty}" onchange="reqs[${i}].qty=+this.value"></td>
+<td><input type="number" min="0" step="0.1" value="${x.weight??''}" placeholder="optional" onchange="reqs[${i}].weight=this.value"></td>
 <td><button class="danger" onclick="reqs.splice(${i},1);renderReq()">Remove</button></td></tr>`).join('');}
 function loadSample(){rms=sampleRM.map(x=>({...x}));reqs=sampleReq.map(x=>({...x}));renderRM();renderReq();clearResult();}
 function clearResult(){document.getElementById('resultCard').style.display='none';document.getElementById('result').innerHTML='';}
@@ -93,7 +94,7 @@ function expand(){
  const out=[];
  for(const r of reqs){
   const qty=Math.max(0,parseInt(r.qty,10)||0);
-  for(let i=0;i<qty;i++) out.push({part:r.part,l:+r.l,w:+r.w});
+  for(let i=0;i<qty;i++) out.push({part:r.part,l:+r.l,w:+r.w,weight:(r.weight!==''&&r.weight!=null&&Number.isFinite(+r.weight))?+r.weight:null});
  }
  return out;
 }
@@ -170,16 +171,31 @@ function packShelf(stock,pieces,kerf,trimW,trimL){
     x=sh.x+(sh.x>0?kerf:0); y=sh.y;
     sh.x=x+best.pw;
   }
-  placements.push({part:p.part,l:p.l,w:p.w,rot:best.rot,x,y,pw:best.pw,ph:best.ph});
+  placements.push({part:p.part,l:p.l,w:p.w,weight:p.weight??null,rot:best.rot,x,y,pw:best.pw,ph:best.ph});
  }
  const usedArea=placements.reduce((a,p)=>a+p.l*p.w,0);
  return {placements,shelves,W,L,usedArea};
 }
 
+function getSettings(){
+ const thickness=Math.max(0,+document.getElementById('thickness').value||0.25);
+ const density=Math.max(0,+document.getElementById('density').value||0.283);
+ return {thickness,density};
+}
+function rawWeight(stock,settings){return stock.w*stock.l*settings.thickness*settings.density;}
+function partWeight(p,settings){return p.weight!=null?p.weight:p.l*p.w*settings.thickness*settings.density;}
+function nestBounds(pack){
+ let maxX=0,maxY=0;
+ for(const p of pack.placements){maxX=Math.max(maxX,p.x+p.pw);maxY=Math.max(maxY,p.y+p.ph);}
+ return {l:maxX,w:maxY};
+}
+function hasActualWeights(pieces){return pieces.some(p=>p.weight!=null);}
+
 function optimize(){
  if(!rms.length||!reqs.length){alert('Please enter raw materials and floor plates.');return;}
  const kerf=Math.max(0,+document.getElementById('kerf').value||0),trimW=Math.max(0,+document.getElementById('trimW').value||0),trimL=Math.max(0,+document.getElementById('trimL').value||0),priority=document.getElementById('priority').value;
  const pieces=expand();
+ const materialSettings=getSettings();
  for(const p of pieces){if(!rms.some(s=>packShelf(s,[p],kerf,trimW,trimL))){alert(`Floor plate ${p.part} (${p.l} × ${p.w}) cannot fit any raw material.`);return;}}
  // Fast exact search for small jobs; deterministic beam search for larger jobs.
  // A state is an array of bins, each bin containing piece indexes and one stock type.
@@ -201,7 +217,7 @@ function optimize(){
  function evaluate(bins){
    const details=[]; let rawArea=0, usedArea=0, cost=0;
    for(const b of bins){const st=rms[b.ri], pack=packShelf(st,b.pieces.map(i=>pieces[i]),kerf,trimW,trimL); if(!pack)return null; details.push({ri:b.ri,stock:st,qty:1,pack}); rawArea+=st.w*st.l; usedArea+=pack.usedArea; cost+=(st.cost===''?0:+st.cost||0);}
-   const reqArea=pieces.reduce((a,p)=>a+p.l*p.w,0); const waste=rawArea-usedArea; return {details,rawArea,usedArea,waste,util:usedArea/rawArea,cost,plateCount:bins.length,score:waste};
+   const reqArea=pieces.reduce((a,p)=>a+p.l*p.w,0); const partWeightTotal=pieces.reduce((a,p)=>a+partWeight(p,materialSettings),0); const rawWeightTotal=bins.reduce((a,b)=>a+rawWeight(rms[b.ri],materialSettings),0); const waste=rawArea-usedArea; return {details,rawArea,usedArea,waste,util:usedArea/rawArea,cost,plateCount:bins.length,score:waste,partWeightTotal,rawWeightTotal};
  }
  function exactSearch(order){
    const bins=[];
@@ -271,17 +287,22 @@ function finalizeState(st,kerf,trimW,trimL,priority){
  return {details,rawArea,usedArea,waste,util,cost,score};
 }
 function renderResult(r,pieces,kerf,trimW,trimL){
+ const materialSettings=getSettings();
+ const weightMode=hasActualWeights(pieces);
+ const partWeightTotal=pieces.reduce((a,p)=>a+partWeight(p,materialSettings),0);
+ const rawWeightTotal=r.details.reduce((a,d)=>a+rawWeight(d.stock,materialSettings),0);
  document.getElementById('resultCard').style.display='block';
  const reqArea=pieces.reduce((a,p)=>a+p.l*p.w,0);
  const grouped={};r.details.forEach(d=>{grouped[d.stock.part]=(grouped[d.stock.part]||0)+1});
  const summary=Object.entries(grouped).map(([part,qty])=>{let s=rms.find(x=>x.part===part);return `<tr><td><span class="badge">${part}</span></td><td>${fmt(s.w)} × ${fmt(s.l)}</td><td>${qty}</td><td>${fmt(qty*s.w*s.l)}</td></tr>`}).join('');
- let plans='';r.details.forEach((d,i)=>{const s=d.stock;plans+=`<div class="plan"><h3>Raw Plate ${i+1}: <span class="badge">${s.part}</span> — ${fmt(s.w)} × ${fmt(s.l)}</h3><ul class="cutlist">${d.pack.placements.map(p=>`<li><b>${p.part}</b> — ${fmt(p.l)} × ${fmt(p.w)}${p.rot?' (rotated)':''} at X=${fmt(p.x)}", Y=${fmt(p.y)}"</li>`).join('')}</ul><div class="small">Stock area: ${fmt(s.w*s.l)} in² · Floor-plate area: ${fmt(d.pack.usedArea)} in² · Plate utilization: ${(d.pack.usedArea/(s.w*s.l)*100).toFixed(1)}%</div><canvas id="canvas${i}" width="900" height="330"></canvas></div>`});
+ let plans='';r.details.forEach((d,i)=>{const s=d.stock;const bounds=nestBounds(d.pack);const pw=d.pack.placements.reduce((a,p)=>a+partWeight(p,materialSettings),0);const rw=rawWeight(s,materialSettings);const geometric=(d.pack.usedArea/(s.w*s.l)*100);const weightUtil=(pw/rw*100);plans+=`<div class="plan"><h3>Nest ${i+1}: <span class="badge">${s.part}</span> — ${fmt(s.w)} × ${fmt(s.l)} in.</h3><div class="neststats"><div><b>Plate dimension</b><br>${fmt(s.l)} × ${fmt(s.w)} in.</div><div><b>Nest bounding dimension</b><br>${fmt(bounds.l)} × ${fmt(bounds.w)} in.</div><div><b>Plate weight</b><br>${fmt(rw)} lb</div><div><b>Part weight</b><br>${fmt(pw)} lb</div><div><b>Scrap weight</b><br>${fmt(Math.max(0,rw-pw))} lb</div><div><b>Utilization</b><br>${weightMode?weightUtil.toFixed(2)+'% (weight)':geometric.toFixed(2)+'% (area)'}</div><div><b>Base kerf</b><br>${fmt(kerf)} in.</div><div><b>Total parts</b><br>${d.pack.placements.length}</div></div><ul class="cutlist">${d.pack.placements.map(p=>`<li><b>${p.part}</b> — ${fmt(p.l)} × ${fmt(p.w)}${p.rot?' (rotated)':''} at X=${fmt(p.x)}", Y=${fmt(p.y)}"${p.weight!=null?` · ${fmt(p.weight)} lb`:''}</li>`).join('')}</ul><div class="small">Rectangular envelope utilization: ${geometric.toFixed(2)}%${weightMode?` · Weight-based utilization: ${weightUtil.toFixed(2)}%`:''}</div><canvas id="canvas${i}" width="900" height="330"></canvas></div>`});
  document.getElementById('result').innerHTML=`
  <div class="success"><b>🏆 Best Material Plan found.</b> The optimizer searched feasible assignments using your raw-material Part#s, piece quantities, rotation, kerf and trim settings.</div>
- <div class="metrics"><div class="metric"><div class="label">Floor-plate area</div><div class="value">${fmt(reqArea)} in²</div></div><div class="metric"><div class="label">Raw material</div><div class="value">${fmt(r.rawArea)} in²</div></div><div class="metric"><div class="label">Waste</div><div class="value warn">${fmt(r.waste)} in²</div></div><div class="metric"><div class="label">Overall utilization</div><div class="value ok">${(r.util*100).toFixed(1)}%</div></div><div class="metric"><div class="label">Raw plates</div><div class="value">${r.details.length}</div></div></div>
+ <div class="metrics"><div class="metric"><div class="label">Floor-plate envelope area</div><div class="value">${fmt(reqArea)} in²</div></div><div class="metric"><div class="label">Raw material area</div><div class="value">${fmt(r.rawArea)} in²</div></div><div class="metric"><div class="label">Envelope waste</div><div class="value warn">${fmt(r.waste)} in²</div></div><div class="metric"><div class="label">Overall utilization</div><div class="value ok">${weightMode?(partWeightTotal/rawWeightTotal*100).toFixed(2)+'% (weight)':(r.util*100).toFixed(2)+'% (area)'}</div></div><div class="metric"><div class="label">Raw plates</div><div class="value">${r.details.length}</div></div></div>
+ <div class="notice"><b>ProNest comparison:</b> ProNest reports utilization from actual part weight/geometry. If you enter Part Weight from the ProNest report, this tool will show weight-based utilization. Without part weights, it uses rectangular envelope area and cannot account for holes, cutouts or irregular contours.</div>
  <h3>Recommended Raw Material</h3><div class="table-wrap"><table><thead><tr><th>Raw Material Part#</th><th>Size</th><th>Qty</th><th>Purchased Area</th></tr></thead><tbody>${summary}</tbody></table></div>
  <h3>Cutting Allocation</h3>${plans}
- <div class="notice">Assumptions: rectangular plates only; no grain direction; no CAD/toolpath; kerf is applied between cuts; edge trim is reserved on all sides. The optimizer is designed as a planning tool, not a machine-code generator.</div>`;
+ <div class="notice">Assumptions: rectangular floor-plate envelopes only; no CAD/toolpath; no hole/irregular-contour nesting; rotation is tested; kerf is treated as minimum separation between adjacent rectangles; edge trim is reserved on all sides. For production cutting, verify the final nest in ProNest/CAM.</div>`;
  r.details.forEach((d,i)=>drawPlan(document.getElementById('canvas'+i),d.stock,d.pack));
 }
 function drawPlan(canvas,stock,pack){const ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);const scale=Math.min((canvas.width-50)/pack.W,(canvas.height-45)/pack.L);const ox=25,oy=25;ctx.strokeStyle='#345';ctx.strokeRect(ox,oy,pack.W*scale,pack.L*scale);ctx.font='12px Segoe UI,Arial';ctx.fillStyle='#17324a';ctx.fillText(`${stock.part}  ${fmt(stock.w)} × ${fmt(stock.l)}`,ox,15);
@@ -302,12 +323,14 @@ async function importExcel(file){
   const lenK=findKey(['length','len']);
   const widK=findKey(['width','wid']);
   const qtyK=findKey(['quantity','qty']);
+  const weightK=findKey(['partweight','weight','wt']);
   if(!partK||!lenK||!widK)throw new Error('Could not identify Part#, Length and Width columns. Please use headers such as Part#, Length, Width, Qty.');
   const parsed=rows.map((r,i)=>({
     part:String(r[partK]).trim()||('ROW-'+(i+1)),
     l:parseFloat(String(r[lenK]).replace(/[^0-9.\-]/g,'')),
     w:parseFloat(String(r[widK]).replace(/[^0-9.\-]/g,'')),
-    qty:qtyK?Math.max(1,parseInt(r[qtyK],10)||1):1
+    qty:qtyK?Math.max(1,parseInt(r[qtyK],10)||1):1,
+    weight:weightK&&r[weightK]!==''&&Number.isFinite(parseFloat(String(r[weightK]).replace(/[^0-9.\-]/g,'')))?parseFloat(String(r[weightK]).replace(/[^0-9.\-]/g,'')):''
   })).filter(r=>Number.isFinite(r.l)&&Number.isFinite(r.w)&&r.l>0&&r.w>0);
   if(!parsed.length)throw new Error('No valid floor-plate rows were found.');
   if(parsed.length>40)throw new Error(`The file contains ${parsed.length} valid rows. The current tool supports up to 40 floor-plate rows. Combine repeated Part#s using the Qty column or reduce the rows to 40 or fewer.`);
@@ -318,5 +341,5 @@ async function importExcel(file){
 
 loadSample();
 </script>
-<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}</script>
+<script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(()=>{})); }</script>
 </body></html>
