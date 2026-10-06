@@ -329,26 +329,42 @@ async function importExcel(file){
   const parseMeasurement = (value) => {
     if (value === null || value === undefined || value === '') return NaN;
     if (typeof value === 'number') return Number.isFinite(value) ? value : NaN;
-    let v = String(value).trim()
+    let v = String(value)
       .replace(/[″”]/g, '"')
       .replace(/[′’]/g, "'")
-      .replace(/\s+/g, ' ')
-      .replace(/\"/g, '')
+      .replace(/[−–—]/g, '-')
+      .replace(/\u00A0/g, ' ')
       .trim();
-    // Unicode vulgar fractions.
+    // Remove inch/foot symbols and normalize whitespace.
+    v = v.replace(/["']/g, '').replace(/\s+/g, ' ').trim();
+
+    // Handle Excel/text fractions robustly:
+    // 104 3/4, 104-3/4, 104 3 / 4, 3/4, 104¾, ¾
     const unicodeFractions = {'½':0.5,'⅓':1/3,'⅔':2/3,'¼':0.25,'¾':0.75,'⅕':0.2,'⅖':0.4,'⅗':0.6,'⅘':0.8,'⅙':1/6,'⅚':5/6,'⅛':0.125,'⅜':0.375,'⅝':0.625,'⅞':0.875};
-    let unicodePart = 0;
-    for (const ch of Object.keys(unicodeFractions)) {
-      if (v.includes(ch)) { unicodePart += unicodeFractions[ch]; v = v.replace(ch, ' '); }
+    for (const [ch, val] of Object.entries(unicodeFractions)) {
+      if (v.includes(ch)) {
+        const whole = v.replace(ch, '').trim();
+        const n = whole === '' || whole === '-' ? (whole === '-' ? -val : val) : Number(whole) + val;
+        if (Number.isFinite(n)) return n;
+      }
     }
-    v = v.replace(/\"/g,'').trim();
-    // Mixed fractions: 104 3/4 or 104-3/4.
-    const mixed = v.match(/^(-?\d+(?:\.\d+)?)\s*[- ]\s*(\d+)\s*\/\s*(\d+)$/);
-    if (mixed) return Number(mixed[1]) + (Number(mixed[2]) / Number(mixed[3]));
-    const frac = v.match(/^(-?\d+)\s*\/\s*(\d+)$/);
-    if (frac) return Number(frac[1]) / Number(frac[2]);
+
+    // Normalize separators around the slash/hyphen used in mixed fractions.
+    v = v.replace(/\s+/g, ' ').replace(/\s*[-]\s*/g, '-').replace(/\s*\/\s*/g, '/').trim();
+
+    // Mixed fraction: 104 3/4 or 104-3/4.
+    let m = v.match(/^(-?\d+(?:\.\d+)?)\s+(\d+)\/(\d+)$/);
+    if (m) return Number(m[1]) + Number(m[2]) / Number(m[3]);
+    m = v.match(/^(-?\d+(?:\.\d+)?)-(\d+)\/(\d+)$/);
+    if (m) return Number(m[1]) + Number(m[2]) / Number(m[3]);
+
+    // Simple fraction: 3/4.
+    m = v.match(/^(-?\d+)\/(\d+)$/);
+    if (m) return Number(m[1]) / Number(m[2]);
+
+    // Decimal / integer, including values with harmless trailing text.
     const decimal = v.match(/^-?\d+(?:\.\d+)?/);
-    return decimal ? Number(decimal[0]) + unicodePart : (unicodePart || NaN);
+    return decimal ? Number(decimal[0]) : NaN;
   };
   const parseWeight = (value) => {
     if (value === null || value === undefined || value === '') return '';
