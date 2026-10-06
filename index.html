@@ -4,43 +4,42 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Floor Plate Raw Material Optimizer</title>
+<link rel="manifest" href="./manifest.webmanifest">
 <style>
-:root{--bg:#f3f5f7;--card:#fff;--ink:#17212b;--muted:#687582;--line:#dce2e8;--blue:#1769aa;--blue2:#eaf3fb;--green:#0a7b52;--orange:#b45f06;--red:#a4262c}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Segoe UI,Arial,sans-serif;color:var(--ink)}
-header{background:#18324a;color:#fff;padding:22px 28px}header h1{margin:0;font-size:25px}header p{margin:6px 0 0;color:#cbd8e4}
-main{max-width:1400px;margin:20px auto;padding:0 18px}.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
-h2{font-size:18px;margin:0 0 12px}.sub{font-size:12px;color:var(--muted);margin-top:-6px;margin-bottom:12px}
-table{width:100%;border-collapse:collapse}th,td{padding:8px 7px;border-bottom:1px solid var(--line);font-size:13px}th{background:#f7f9fb;text-align:left}td.num{text-align:right}
-input,select{padding:7px 8px;border:1px solid #c8d1d9;border-radius:5px;background:#fff}input[type=number]{width:90px}.part{width:130px}.wide{width:180px}
-button{border:0;border-radius:6px;padding:9px 13px;font-weight:600;cursor:pointer}.primary{background:var(--blue);color:white}.secondary{background:#e9eef2;color:#23313d}.danger{background:#fde9ea;color:var(--red)}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.settings{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:12px}.setting label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
-.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:15px}.metric{background:#f7f9fb;border:1px solid var(--line);border-radius:8px;padding:13px}.metric .label{font-size:12px;color:var(--muted)}.metric .value{font-size:21px;font-weight:700;margin-top:4px}
-.ok{color:var(--green)}.warn{color:var(--orange)}.error{color:var(--red)}.badge{display:inline-block;background:var(--blue2);color:#0e568e;padding:3px 7px;border-radius:99px;font-size:12px;font-weight:600}
-.plan{border:1px solid var(--line);border-radius:8px;margin:10px 0;padding:12px}.plan h3{margin:0 0 8px;font-size:15px}.cutlist{margin:0;padding-left:18px}.cutlist li{margin:4px 0;font-size:13px}
-.neststats{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:8px;margin:8px 0 10px}.neststats>div{background:#f7f9fb;border:1px solid var(--line);border-radius:6px;padding:7px;font-size:12px}.notice{padding:10px 12px;background:#fff8e8;border-left:4px solid #d98b16;margin:10px 0;font-size:13px}.success{padding:10px 12px;background:#eaf8f2;border-left:4px solid var(--green);margin:10px 0;font-size:13px}
-canvas{width:100%;max-width:100%;border:1px solid var(--line);border-radius:7px;background:white}.legend{font-size:12px;color:var(--muted);margin-top:5px}
-@media print{
- body{background:#fff}.no-print{display:none!important}.card{box-shadow:none;border:0;margin:0 0 12px;padding:8px}.card.input-card,.card.settings-card{display:none!important}
- header{padding:12px 18px}header h1{font-size:20px}main{max-width:none;margin:0;padding:0}.plan{break-inside:avoid-page}.metrics{grid-template-columns:repeat(5,1fr)}canvas{max-width:100%}
-}
-@media(max-width:900px){.neststats{grid-template-columns:1fr 1fr}.settings{grid-template-columns:1fr 1fr}.metrics{grid-template-columns:1fr 1fr}}@media(max-width:600px){.neststats{grid-template-columns:1fr}.settings,.metrics{grid-template-columns:1fr}.card{padding:12px}table{min-width:720px}.table-wrap{overflow:auto}}
+:root{--bg:#eef2f5;--card:#fff;--ink:#16222d;--muted:#6b7785;--line:#d8e0e7;--navy:#17324a;--navy2:#234762;--blue:#0b6fb8;--blue2:#eaf4fb;--green:#087a52;--green2:#eaf8f2;--orange:#b96805;--orange2:#fff6e5;--red:#b4232c;--shadow:0 4px 16px rgba(18,38,55,.07)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);font-family:Segoe UI,Arial,sans-serif;color:var(--ink)}
+header{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:22px 28px 18px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+.header-inner{max-width:1440px;margin:auto;display:flex;align-items:flex-start;justify-content:space-between;gap:20px}.brand{display:flex;gap:14px;align-items:flex-start}.brand-mark{width:42px;height:42px;border:1px solid rgba(255,255,255,.25);border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,.09);font-size:21px}.brand h1{margin:0;font-size:25px;letter-spacing:-.2px}.brand p{margin:5px 0 0;color:#cbd8e4;font-size:13px}.version{font-size:11px;font-weight:700;letter-spacing:.4px;padding:5px 9px;border-radius:999px;background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.18);white-space:nowrap}
+main{max-width:1440px;margin:18px auto;padding:0 18px}.workflow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}.step{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 13px;display:flex;align-items:center;gap:10px}.step-num{width:27px;height:27px;border-radius:50%;display:grid;place-items:center;background:#edf3f7;color:var(--navy);font-weight:800;font-size:12px}.step b{font-size:12px}.step span{display:block;color:var(--muted);font-size:11px;margin-top:1px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:var(--shadow)}.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:13px}.card-title{display:flex;gap:10px;align-items:flex-start}.section-no{min-width:30px;height:30px;border-radius:8px;background:var(--blue2);color:#07588f;display:grid;place-items:center;font-weight:800;font-size:12px}.card h2{font-size:17px;margin:1px 0 2px}.sub{font-size:12px;color:var(--muted);margin:0}.head-note{font-size:11px;color:var(--muted);background:#f7f9fb;border:1px solid var(--line);padding:6px 9px;border-radius:7px;white-space:nowrap}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:8px}.table-wrap table{width:100%;border-collapse:separate;border-spacing:0;min-width:760px}th,td{padding:8px 9px;border-bottom:1px solid var(--line);font-size:13px}th{background:#f5f8fa;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.35px;color:#536271;position:sticky;top:0;z-index:1}tr:last-child td{border-bottom:0}tbody tr:hover{background:#fbfdfe}td.num{text-align:right}
+input,select{padding:8px 9px;border:1px solid #c7d1da;border-radius:6px;background:#fff;color:var(--ink);font:inherit}input:focus,select:focus{outline:2px solid rgba(11,111,184,.16);border-color:#6aa9d2}input[type=number]{width:96px}.part{width:145px}.wide{width:180px}
+button{border:0;border-radius:7px;padding:9px 13px;font-weight:700;cursor:pointer;font:inherit;font-size:12px;transition:.15s ease}.primary{background:var(--blue);color:white;box-shadow:0 2px 5px rgba(11,111,184,.2)}
+.upload-excel{display:inline-flex!important;align-items:center;justify-content:center;gap:7px;min-width:150px;height:38px;padding:0 16px!important;border-radius:8px!important;background:linear-gradient(135deg,#0b6fb8,#095f9e)!important;color:#fff!important;font-weight:800!important;box-shadow:0 3px 8px rgba(11,111,184,.24);border:1px solid rgba(255,255,255,.12);transition:transform .15s ease,box-shadow .15s ease,background .15s ease}.upload-excel:hover{background:linear-gradient(135deg,#0d7bc9,#0a66a7)!important;box-shadow:0 5px 12px rgba(11,111,184,.3);transform:translateY(-1px)}.upload-excel:active{transform:translateY(0);box-shadow:0 2px 5px rgba(11,111,184,.22)}.upload-icon{font-size:16px;line-height:1}.primary:hover{background:#095f9e}.secondary{background:#edf2f5;color:#23313d}.secondary:hover{background:#e1e8ed}.danger{background:#fdeced;color:var(--red)}.danger:hover{background:#fbdfe1}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.settings{display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:12px}.setting{background:#f8fafb;border:1px solid var(--line);border-radius:8px;padding:10px}.setting label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:600}.setting input,.setting select{width:100%}
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:0 0 16px}.metric{background:#f7f9fb;border:1px solid var(--line);border-radius:9px;padding:12px}.metric .label{font-size:11px;color:var(--muted);line-height:1.25}.metric .value{font-size:20px;font-weight:800;margin-top:5px;line-height:1.1}.ok{color:var(--green)}.warn{color:var(--orange)}.error{color:var(--red)}.badge{display:inline-block;background:var(--blue2);color:#0e568e;padding:3px 7px;border-radius:99px;font-size:11px;font-weight:800}
+.plan{border:1px solid var(--line);border-radius:10px;margin:12px 0;padding:13px;background:#fff}.plan h3{margin:0 0 9px;font-size:14px}.cutlist{margin:0;padding-left:18px}.cutlist li{margin:4px 0;font-size:12px}.neststats{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:8px;margin:8px 0 11px}.neststats>div{background:#f7f9fb;border:1px solid var(--line);border-radius:7px;padding:8px;font-size:11px;line-height:1.35}.notice{padding:10px 12px;background:var(--orange2);border-left:4px solid #d98b16;border-radius:5px;margin:10px 0;font-size:12px}.success{padding:11px 13px;background:var(--green2);border-left:4px solid var(--green);border-radius:5px;margin:0 0 14px;font-size:12px}.small{font-size:11px;color:var(--muted);margin:7px 0}.result-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.result-head h2{margin:0}.result-actions{display:flex;gap:7px}
+canvas{width:100%;max-width:100%;border:1px solid var(--line);border-radius:7px;background:white;display:block}.legend{font-size:12px;color:var(--muted);margin-top:5px}.footer-note{font-size:11px;color:var(--muted);text-align:center;padding:4px 0 18px}
+@media print{body{background:#fff}.no-print{display:none!important}.card{box-shadow:none;border:0;margin:0 0 12px;padding:8px}.card.input-card,.card.settings-card,.workflow,.footer-note{display:none!important}header{padding:12px 18px}.header-inner{max-width:none}.brand h1{font-size:20px}main{max-width:none;margin:0;padding:0}.plan{break-inside:avoid-page}.metrics{grid-template-columns:repeat(5,1fr)}canvas{max-width:100%}.result-head{margin-bottom:8px}}
+@media(max-width:900px){.workflow{grid-template-columns:1fr 1fr}.neststats{grid-template-columns:1fr 1fr}.settings{grid-template-columns:1fr 1fr}.metrics{grid-template-columns:1fr 1fr}.head-note{display:none}}
+@media(max-width:600px){.workflow{grid-template-columns:1fr}.neststats{grid-template-columns:1fr}.settings,.metrics{grid-template-columns:1fr}.card{padding:12px}.brand h1{font-size:20px}.brand p{font-size:12px}.table-wrap table{min-width:760px}.result-head{align-items:flex-start;flex-direction:column}.result-actions{width:100%}.result-actions button{flex:1}}
 </style>
 </head>
 <body>
-<header><h1>Floor Plate Raw Material Optimizer</h1><p>Best Material Plan — rectangular floor plates → raw-material Part# + quantity + cutting allocation</p></header>
+<header><div class="header-inner"><div class="brand"><div class="brand-mark">▦</div><div><h1>Floor Plate Raw Material Optimizer</h1><p>Best Material Plan — raw-material Part# + quantity + cutting allocation</p></div></div></div></header>
 <main>
+<div class="workflow"><div class="step"><div class="step-num">1</div><div><b>Raw Materials</b><span>Stock sizes & availability</span></div></div><div class="step"><div class="step-num">2</div><div><b>Floor Plates</b><span>Up to 40 requirement rows</span></div></div><div class="step"><div class="step-num">3</div><div><b>Optimize</b><span>Kerf, trim & rotation</span></div></div><div class="step"><div class="step-num">4</div><div><b>Review / PDF</b><span>Plan, nests & utilization</span></div></div></div>
 <section class="card input-card">
-<h2>1. Raw Material Master</h2><div class="sub">All raw materials are assumed to be 1/4-in steel unless changed. Dimensions are inches.</div>
+<div class="card-head"><div class="card-title"><div class="section-no">01</div><div><h2>Raw Materials</h2><div class="sub">All raw materials are assumed to be 1/4-in steel unless changed. Dimensions are inches.</div></div><div class="head-note">MS 0.250 in default</div></div></div>
 <div class="table-wrap"><table id="rmTable"><thead><tr><th>Part#</th><th>Width</th><th>Length</th><th>Available Qty</th><th>Cost / Plate (optional)</th><th></th></tr></thead><tbody></tbody></table></div>
 <div class="actions"><button class="secondary" onclick="addRM()">+ Add Raw Material</button></div>
 </section>
 <section class="card input-card">
-<h2>2. Floor Plate Requirements</h2><div class="sub">Enter the finished floor-plate dimensions and quantities. Rotation is tested automatically. You can enter up to <b>40 floor-plate rows</b>; each row may have any quantity.</div>
+<div class="card-head"><div class="card-title"><div class="section-no">02</div><div><h2>Floor Plate Requirements</h2><div class="sub">Enter the finished floor-plate dimensions and quantities. Rotation is tested automatically. You can enter up to <b>40 floor-plate rows</b>; each row may have any quantity.</div></div><div class="head-note">Maximum 40 rows</div></div></div>
 <div class="table-wrap"><table id="reqTable"><thead><tr><th>Floor Plate Part#</th><th>Length</th><th>Width</th><th>Qty</th><th>Part Weight (lb, optional)</th><th></th></tr></thead><tbody></tbody></table></div>
-<div class="actions"><button class="secondary" onclick="addReq()">+ Add Floor Plate</button><button class="secondary" onclick="loadSample()">Load Sample</button><label class="secondary" style="display:inline-block;cursor:pointer">Upload Excel <input id="excelFile" type="file" accept=".xls,.xlsx,.csv" style="display:none" onchange="importExcel(this.files[0])"></label><span id="reqCount" class="badge" style="align-self:center">0 / 40 rows</span></div>
+<div class="actions"><button class="secondary" onclick="addReq()">+ Add Floor Plate</button><button class="secondary" onclick="loadSample()">Load Sample</button><label class="upload-excel" style="cursor:pointer"><span class="upload-icon">⇧</span><span>Upload Excel</span><input id="excelFile" type="file" accept=".xls,.xlsx,.csv" style="display:none" onchange="importExcel(this.files[0])"></label><span id="reqCount" class="badge" style="align-self:center">0 / 40 rows</span></div>
 </section>
 <section class="card settings-card">
-<h2>3. Optimization Settings</h2>
+<div class="card-head"><div class="card-title"><div class="section-no">03</div><div><h2>Optimization Settings</h2><div class="sub">Use ProNest-style kerf and material assumptions where applicable.</div></div></div><div class="head-note">Default kerf 0.091 in</div></div>
 <div class="settings">
 <div class="setting"><label>Cutting kerf / part separation (in)</label><input id="kerf" type="number" step="0.001" value="0.091"></div>
 <div class="setting"><label>Edge trim — width (in)</label><input id="trimW" type="number" step="0.001" value="0"></div>
@@ -51,7 +50,8 @@ canvas{width:100%;max-width:100%;border:1px solid var(--line);border-radius:7px;
 </div>
 <div class="actions no-print"><button class="primary" onclick="optimize()">OPTIMIZE — Best Material Plan</button><button class="secondary" onclick="clearResult()">Clear Result</button></div>
 </section>
-<section class="card" id="resultCard" style="display:none"><div class="actions no-print" style="justify-content:flex-end"><button class="primary" onclick="window.print()">PRINT / SAVE PDF</button></div><h2>4. Best Material Plan</h2><div id="result"></div></section>
+<section class="card" id="resultCard" style="display:none"><div class="result-head"><div class="card-title"><div class="section-no">04</div><div><h2>Best Material Plan</h2><div class="sub">Recommended raw material, allocation, utilization and nesting layout.</div></div></div><div class="result-actions no-print"><button class="primary" onclick="window.print()">PRINT / SAVE PDF</button></div></div><div id="result"></div></section>
+<div class="footer-note">Rectangular floor-plate planning tool • Verify final CNC nesting in ProNest/CAM before production.</div>
 </main>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script>
@@ -325,12 +325,42 @@ async function importExcel(file){
   const qtyK=findKey(['quantity','qty']);
   const weightK=findKey(['partweight','weight','wt']);
   if(!partK||!lenK||!widK)throw new Error('Could not identify Part#, Length and Width columns. Please use headers such as Part#, Length, Width, Qty.');
+  // Accept Excel dimensions such as: 104 3/4", 104-3/4", 104 ¾", 3/4", 104.75, and numeric Excel fraction values.
+  const parseMeasurement = (value) => {
+    if (value === null || value === undefined || value === '') return NaN;
+    if (typeof value === 'number') return Number.isFinite(value) ? value : NaN;
+    let v = String(value).trim()
+      .replace(/[″”]/g, '"')
+      .replace(/[′’]/g, "'")
+      .replace(/\s+/g, ' ')
+      .replace(/\"/g, '')
+      .trim();
+    // Unicode vulgar fractions.
+    const unicodeFractions = {'½':0.5,'⅓':1/3,'⅔':2/3,'¼':0.25,'¾':0.75,'⅕':0.2,'⅖':0.4,'⅗':0.6,'⅘':0.8,'⅙':1/6,'⅚':5/6,'⅛':0.125,'⅜':0.375,'⅝':0.625,'⅞':0.875};
+    let unicodePart = 0;
+    for (const ch of Object.keys(unicodeFractions)) {
+      if (v.includes(ch)) { unicodePart += unicodeFractions[ch]; v = v.replace(ch, ' '); }
+    }
+    v = v.replace(/\"/g,'').trim();
+    // Mixed fractions: 104 3/4 or 104-3/4.
+    const mixed = v.match(/^(-?\d+(?:\.\d+)?)\s*[- ]\s*(\d+)\s*\/\s*(\d+)$/);
+    if (mixed) return Number(mixed[1]) + (Number(mixed[2]) / Number(mixed[3]));
+    const frac = v.match(/^(-?\d+)\s*\/\s*(\d+)$/);
+    if (frac) return Number(frac[1]) / Number(frac[2]);
+    const decimal = v.match(/^-?\d+(?:\.\d+)?/);
+    return decimal ? Number(decimal[0]) + unicodePart : (unicodePart || NaN);
+  };
+  const parseWeight = (value) => {
+    if (value === null || value === undefined || value === '') return '';
+    const n = parseFloat(String(value).replace(/[^0-9.\-]/g,''));
+    return Number.isFinite(n) ? n : '';
+  };
   const parsed=rows.map((r,i)=>({
     part:String(r[partK]).trim()||('ROW-'+(i+1)),
-    l:parseFloat(String(r[lenK]).replace(/[^0-9.\-]/g,'')),
-    w:parseFloat(String(r[widK]).replace(/[^0-9.\-]/g,'')),
-    qty:qtyK?Math.max(1,parseInt(r[qtyK],10)||1):1,
-    weight:weightK&&r[weightK]!==''&&Number.isFinite(parseFloat(String(r[weightK]).replace(/[^0-9.\-]/g,'')))?parseFloat(String(r[weightK]).replace(/[^0-9.\-]/g,'')):''
+    l:parseMeasurement(r[lenK]),
+    w:parseMeasurement(r[widK]),
+    qty:qtyK?Math.max(1,parseInt(String(r[qtyK]).replace(/[^0-9-]/g,''),10)||1):1,
+    weight:weightK?parseWeight(r[weightK]):''
   })).filter(r=>Number.isFinite(r.l)&&Number.isFinite(r.w)&&r.l>0&&r.w>0);
   if(!parsed.length)throw new Error('No valid floor-plate rows were found.');
   if(parsed.length>40)throw new Error(`The file contains ${parsed.length} valid rows. The current tool supports up to 40 floor-plate rows. Combine repeated Part#s using the Qty column or reduce the rows to 40 or fewer.`);
